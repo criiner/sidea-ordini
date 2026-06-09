@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Sidea Ordini">
+<meta name="theme-color" content="#ffffff">
+<title>Sidea Ordini</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f5;color:#1a1a1a;max-width:480px;margin:0 auto;min-height:100vh}
+  .header{background:#fff;border-bottom:1px solid #e5e5e5;padding:14px 16px;display:flex;align-items:center;position:sticky;top:0;z-index:100}
+  .header-title{font-size:17px;font-weight:600;color:#1a1a1a}
+  .header-sub{font-size:12px;color:#888;margin-top:1px}
+  .tabs{display:flex;background:#fff;border-bottom:1px solid #e5e5e5;position:sticky;top:61px;z-index:99}
+  .tab{flex:1;padding:11px 4px;font-size:12px;font-weight:500;border:none;background:transparent;cursor:pointer;color:#888;border-bottom:2px solid transparent;transition:all .15s}
+  .tab.active{color:#1a1a1a;border-bottom-color:#1a1a1a}
+  .section{display:none;padding:12px 16px;padding-bottom:32px}
+  .section.active{display:block}
+  input,select,textarea{font-family:inherit;font-size:14px;padding:10px 12px;border:1px solid #ddd;border-radius:10px;background:#fff;color:#1a1a1a;width:100%;outline:none}
+  input:focus,select:focus,textarea:focus{border-color:#1a1a1a}
+  textarea{resize:none;height:56px}
+  .card{background:#fff;border-radius:12px;border:1px solid #e8e8e8;margin-bottom:8px}
+  .row{display:flex;gap:8px;margin-bottom:10px}
+  .row>*{flex:1}
+
+  /* SEARCH */
+  .profile-row{margin-bottom:10px}
+  .profile-info{font-size:12px;color:#555;background:#f0f0f0;border-radius:8px;padding:8px 12px;margin-bottom:10px;line-height:1.5;display:none}
+  .search-row{display:flex;gap:8px;margin-bottom:10px}
+  .search-row input{flex:1}
+  .search-btn{padding:10px 14px;font-size:14px;border:1px solid #ddd;border-radius:10px;background:#1a1a1a;color:#fff;cursor:pointer;white-space:nowrap;font-weight:500}
+  .search-btn:active{opacity:.8}
+  .product-list{display:flex;flex-direction:column;gap:8px}
+  .product-card{background:#fff;border-radius:12px;border:1px solid #e8e8e8;padding:12px;display:flex;align-items:center;gap:10px}
+  .product-info{flex:1;min-width:0}
+  .product-name{font-size:14px;font-weight:500;color:#1a1a1a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .product-meta{font-size:12px;color:#888;margin-top:2px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+  .promo-badge{font-size:10px;background:#fff3cd;color:#856404;padding:2px 6px;border-radius:4px;font-weight:600}
+  .disc-badge{font-size:10px;background:#d4edda;color:#155724;padding:2px 6px;border-radius:4px;font-weight:600}
+  .price-col{text-align:right;flex-shrink:0}
+  .price-final{font-size:14px;font-weight:600;color:#1a1a1a}
+  .price-orig{font-size:11px;color:#bbb;text-decoration:line-through}
+  .add-btn{width:32px;height:32px;border-radius:50%;border:1px solid #ddd;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;color:#1a1a1a}
+  .add-btn:active{background:#f0f0f0;transform:scale(.95)}
+  .empty{text-align:center;padding:40px 20px;color:#aaa;font-size:14px;line-height:1.7}
+
+  /* CART */
+  .client-section{margin-bottom:10px}
+  .cart-list{display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
+  .cart-item{background:#fff;border-radius:12px;border:1px solid #e8e8e8;padding:12px}
+  .cart-item-top{display:flex;align-items:flex-start;gap:8px}
+  .cart-item-name{flex:1;font-size:14px;font-weight:500;color:#1a1a1a;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .cart-item-sku{font-size:11px;color:#aaa;margin-top:1px}
+  .cart-item-disc{font-size:11px;color:#155724;margin-top:2px}
+  .del-btn{width:26px;height:26px;border:none;background:transparent;cursor:pointer;color:#ccc;font-size:18px;flex-shrink:0;display:flex;align-items:center;justify-content:center;padding:0}
+  .del-btn:active{color:#e74c3c}
+  .cart-controls{display:flex;align-items:center;gap:8px;margin-top:10px}
+  .qty-btn{width:28px;height:28px;border-radius:8px;border:1px solid #ddd;background:#fff;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .qty-btn:active{background:#f0f0f0}
+  .qty-val{font-size:14px;font-weight:600;min-width:20px;text-align:center}
+  .unit-price{font-size:12px;color:#888;margin-left:4px}
+  .line-total{font-size:14px;font-weight:600;margin-left:auto}
+  .cart-footer{background:#fff;border-radius:12px;border:1px solid #e8e8e8;padding:14px;margin-top:4px}
+  .extra-disc-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+  .extra-disc-row label{font-size:13px;color:#555;white-space:nowrap}
+  .extra-disc-row input{width:70px;flex:none}
+  .summary{margin-bottom:12px}
+  .sum-row{display:flex;justify-content:space-between;font-size:13px;color:#666;padding:3px 0}
+  .sum-row.total{font-size:17px;font-weight:600;color:#1a1a1a;padding-top:8px;margin-top:4px;border-top:1px solid #eee}
+  .action-btns{display:flex;gap:8px}
+  .action-btns button{flex:1;padding:11px 8px;font-size:13px;font-weight:500;border:1px solid #ddd;border-radius:10px;background:#fff;color:#1a1a1a;cursor:pointer}
+  .action-btns button:active{background:#f5f5f5}
+  .action-btns .primary-btn{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+  .action-btns .primary-btn:active{opacity:.85}
+  .badge{background:#e74c3c;color:#fff;border-radius:10px;font-size:10px;font-weight:600;padding:1px 5px;margin-left:3px;vertical-align:middle}
+
+  /* HISTORY */
+  .hist-card{background:#fff;border-radius:12px;border:1px solid #e8e8e8;padding:12px;margin-bottom:8px}
+  .hist-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px}
+  .hist-client{font-size:14px;font-weight:600;color:#1a1a1a}
+  .hist-total{font-size:14px;font-weight:600;color:#1a1a1a}
+  .hist-meta{font-size:12px;color:#aaa;line-height:1.5}
+  .hist-actions{display:flex;gap:6px;margin-top:10px}
+  .hist-actions button{flex:1;padding:7px;font-size:12px;border:1px solid #ddd;border-radius:8px;background:transparent;color:#555;cursor:pointer}
+  .hist-actions .danger{color:#e74c3c;border-color:#fcc}
+  .hist-actions button:active{background:#f5f5f5}
+  .sect-label{font-size:12px;font-weight:600;color:#aaa;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
+
+  /* CONFIG */
+  .config-card{background:#fff;border-radius:12px;border:1px solid #e8e8e8;padding:14px;margin-bottom:10px}
+  .config-card label{font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:4px;margin-top:12px}
+  .config-card label:first-child{margin-top:0}
+  .config-hint{font-size:12px;color:#aaa;margin-top:8px;line-height:1.6}
+  .save-btn{width:100%;padding:12px;font-size:15px;font-weight:600;border:none;border-radius:10px;background:#1a1a1a;color:#fff;cursor:pointer;margin-bottom:8px}
+  .save-btn:active{opacity:.85}
+  .status-msg{font-size:13px;text-align:center;padding:4px;color:#888}
+  .status-ok{color:#27ae60}.status-err{color:#e74c3c}
+  .loading-msg{text-align:center;padding:30px;color:#aaa;font-size:14px}
+  .custom-disc-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;display:none}
+  .custom-disc-row label{font-size:13px;color:#555;white-space:nowrap}
+  .custom-disc-row input{width:70px;flex:none}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="header-title">📋 Sidea Ordini</div>
+    <div class="header-sub" id="header-profile">Profilo: Privato</div>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('search')">🔍 Prodotti</button>
+  <button class="tab" onclick="switchTab('cart')" id="cart-tab">🛒 Ordine</button>
+  <button class="tab" onclick="switchTab('history')">📁 Storico</button>
+  <button class="tab" onclick="switchTab('config')">⚙️ Config</button>
+</div>
+
+<!-- SEARCH -->
+<div class="section active" id="section-search">
+  <div class="profile-row">
+    <select id="profile-select" onchange="onProfileChange()">
+      <option value="privato">👤 Privato — prezzo pieno</option>
+      <option value="fitness">💪 Professionista Fitness — 20% (escluse promo)</option>
+      <option value="rivenditore">🏪 Rivenditore — 30% (escluse promo)</option>
+      <option value="custom">✏️ Sconto personalizzato</option>
+    </select>
+  </div>
+  <div class="profile-info" id="profile-info"></div>
+  <div class="custom-disc-row" id="custom-disc-row">
+    <label>Sconto %:</label>
+    <input type="number" id="custom-disc-pct" value="0" min="0" max="99" oninput="updateCustomInfo()" />
+    <span style="font-size:13px;color:#888" id="custom-disc-info"></span>
+  </div>
+  <div class="search-row">
+    <input type="text" id="search-input" placeholder="Cerca nome o codice SKU..." />
+    <button class="search-btn" onclick="doSearch()">Cerca</button>
+  </div>
+  <div id="product-list" class="product-list">
+    <div class="empty">Configura le credenziali API nella tab ⚙️ Config<br>poi cerca un prodotto</div>
+  </div>
+</div>
+
+<!-- CART -->
+<div class="section" id="section-cart">
+  <div class="client-section">
+    <div class="row">
+      <input type="text" id="client-name" placeholder="Nome cliente..." />
+      <input type="text" id="client-ref" placeholder="P.IVA / Rif." />
+    </div>
+  </div>
+  <div id="cart-list" class="cart-list"></div>
+  <div id="cart-empty" class="empty">Nessun prodotto nell'ordine.<br>Cercane dalla tab Prodotti.</div>
+  <div id="cart-footer" class="cart-footer" style="display:none">
+    <div class="extra-disc-row">
+      <label>Sconto extra %:</label>
+      <input type="number" id="extra-disc" value="0" min="0" max="99" oninput="renderCart()" />
+      <span style="font-size:12px;color:#aaa">(sul subtotale)</span>
+    </div>
+    <div style="margin-bottom:10px">
+      <textarea id="order-note" placeholder="Note ordine..."></textarea>
+    </div>
+    <div class="summary" id="summary"></div>
+    <div class="action-btns">
+      <button onclick="saveQuote()">💾 Salva</button>
+      <button onclick="clearCart()">🗑 Svuota</button>
+      <button class="primary-btn" onclick="exportOrder()">📤 Esporta</button>
+    </div>
+  </div>
+</div>
+
+<!-- HISTORY -->
+<div class="section" id="section-history">
+  <div class="sect-label">Preventivi salvati</div>
+  <div id="hist-list"></div>
+  <div id="hist-empty" class="empty" style="display:none">Nessun preventivo salvato</div>
+</div>
+
+<!-- CONFIG -->
+<div class="section" id="section-config">
+  <div class="config-card">
+    <label>URL Sito WooCommerce</label>
+    <input type="text" id="cfg-url" placeholder="https://www.sideaita.it" />
+    <label>Consumer Key (ck_...)</label>
+    <input type="text" id="cfg-ck" placeholder="ck_xxxxxxxxxxxxxxxx" autocomplete="off" />
+    <label>Consumer Secret (cs_...)</label>
+    <input type="password" id="cfg-cs" placeholder="cs_xxxxxxxxxxxxxxxx" autocomplete="off" />
+    <div class="config-hint">
+      <strong>Come generare le chiavi:</strong><br>
+      WordPress Admin → WooCommerce → Impostazioni → Avanzate → REST API → Aggiungi chiave → Permesso: Lettura
+    </div>
+  </div>
+  <button class="save-btn" onclick="saveConfig()">Salva e testa connessione</button>
+  <div id="config-status" class="status-msg"></div>
+  <div class="config-card" style="margin-top:10px">
+    <div style="font-size:13px;color:#555;line-height:1.7">
+      <strong>Profili sconto:</strong><br>
+      • Privato: prezzo pieno<br>
+      • Professionista Fitness: −20% (i prodotti già in promo mantengono il prezzo scontato WooCommerce)<br>
+      • Rivenditore: −30% (stessa regola)<br>
+      • Custom: inserisci la percentuale che vuoi<br><br>
+      <strong>Sconto extra nel carrello:</strong> si applica sopra al profilo, utile per trattative sul momento.
+    </div>
+  </div>
+</div>
+
+<script>
+const PROFILES = {
+  privato:     { label:'Privato',               disc:0,  respectPromo:false },
+  fitness:     { label:'Prof. Fitness',         disc:20, respectPromo:true  },
+  rivenditore: { label:'Rivenditore',           disc:30, respectPromo:true  },
+  custom:      { label:'Custom',                disc:0,  respectPromo:false }
+};
+
+let cart = JSON.parse(localStorage.getItem('sidea_cart') || '[]');
+let quotes = JSON.parse(localStorage.getItem('sidea_quotes') || '[]');
+let config = JSON.parse(localStorage.getItem('sidea_config') || '{"url":"https://www.sideaita.it","ck":"","cs":""}');
+let currentProfile = localStorage.getItem('sidea_profile') || 'privato';
+
+function init() {
+  loadConfig();
+  document.getElementById('profile-select').value = currentProfile;
+  onProfileChange();
+  updateBadge();
+  document.getElementById('search-input').addEventListener('keydown', e => { if(e.key==='Enter') doSearch(); });
+}
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  const idx = {search:0, cart:1, history:2, config:3}[tab];
+  document.querySelectorAll('.tab')[idx].classList.add('active');
+  document.getElementById('section-'+tab).classList.add('active');
+  if(tab==='cart') renderCart();
+  if(tab==='history') renderHistory();
+}
+
+function onProfileChange() {
+  currentProfile = document.getElementById('profile-select').value;
+  localStorage.setItem('sidea_profile', currentProfile);
+  const p = PROFILES[currentProfile];
+  const infoEl = document.getElementById('profile-info');
+  const customEl = document.getElementById('custom-disc-row');
+  document.getElementById('header-profile').textContent = 'Profilo: ' + p.label;
+  if(currentProfile === 'custom') {
+    infoEl.style.display = 'none';
+    customEl.style.display = 'flex';
+    updateCustomInfo();
+  } else {
+    customEl.style.display = 'none';
+    if(p.disc > 0) {
+      infoEl.style.display = 'block';
+      infoEl.textContent = '−'+p.disc+'% applicato automaticamente. I prodotti già in promozione mantengono il prezzo promo WooCommerce.';
+    } else {
+      infoEl.style.display = 'none';
+    }
+  }
+}
+
+function updateCustomInfo() {
+  const v = parseFloat(document.getElementById('custom-disc-pct').value) || 0;
+  document.getElementById('custom-disc-info').textContent = v > 0 ? '−'+v+'% su tutti i prodotti' : 'nessuno sconto';
+}
+
+function getProfileDisc() {
+  if(currentProfile === 'custom') {
+    return { disc: parseFloat(document.getElementById('custom-disc-pct').value)||0, respectPromo: false };
+  }
+  return PROFILES[currentProfile];
+}
+
+function calcProductPrice(p) {
+  const { disc, respectPromo } = getProfileDisc();
+  const regular = parseFloat(p.regular_price || p.price || '0');
+  const sale = parseFloat(p.sale_price || '0');
+  const isOnSale = p.on_sale && sale > 0 && sale < regular;
+  if(isOnSale && respectPromo) {
+    return { final: sale, original: regular, wasDisc: false, isPromo: true };
+  }
+  if(disc > 0) {
+    return { final: regular * (1 - disc/100), original: regular, wasDisc: true, isPromo: false };
+  }
+  return { final: isOnSale ? sale : regular, original: isOnSale ? regular : null, wasDisc: false, isPromo: isOnSale };
+}
+
+function loadConfig() {
+  document.getElementById('cfg-url').value = config.url || '';
+  document.getElementById('cfg-ck').value = config.ck || '';
+  document.getElementById('cfg-cs').value = config.cs || '';
+}
+
+async function saveConfig() {
+  config.url = document.getElementById('cfg-url').value.trim().replace(/\/+$/, '');
+  config.ck = document.getElementById('cfg-ck').value.trim();
+  config.cs = document.getElementById('cfg-cs').value.trim();
+  localStorage.setItem('sidea_config', JSON.stringify(config));
+  const el = document.getElementById('config-status');
+  el.textContent = 'Test in corso...'; el.className = 'status-msg';
+  try {
+    const r = await apiFetch('/wp-json/wc/v3/products?per_page=1');
+    el.textContent = '✓ Connessione riuscita!'; el.className = 'status-msg status-ok';
+  } catch(e) {
+    el.textContent = '✗ Errore: ' + e.message; el.className = 'status-msg status-err';
+  }
+}
+
+async function apiFetch(path) {
+  if(!config.ck || !config.cs) throw new Error('Credenziali mancanti — vai in Config');
+  const auth = btoa(config.ck + ':' + config.cs);
+  const r = await fetch(config.url + path, { headers: { 'Authorization': 'Basic ' + auth } });
+  if(!r.ok) throw new Error('HTTP ' + r.status + ' — controlla le credenziali');
+  return r.json();
+}
+
+async function doSearch() {
+  const q = document.getElementById('search-input').value.trim();
+  if(!q) return;
+  const el = document.getElementById('product-list');
+  el.innerHTML = '<div class="loading-msg">🔍 Ricerca in corso...</div>';
+  try {
+    const products = await apiFetch('/wp-json/wc/v3/products?search=' + encodeURIComponent(q) + '&per_page=25&status=publish');
+    if(!products.length) { el.innerHTML = '<div class="empty">Nessun prodotto trovato per "'+escH(q)+'"</div>'; return; }
+    el.innerHTML = '';
+    products.forEach(p => {
+      const pc = calcProductPrice(p);
+      let priceHTML = '';
+      if(pc.original && pc.final < pc.original) {
+        priceHTML = '<div class="price-orig">'+fmt(pc.original)+'</div><div class="price-final">'+fmt(pc.final)+'</div>';
+      } else {
+        priceHTML = '<div class="price-final">'+fmt(pc.final)+'</div>';
+      }
+      let badges = '';
+      if(pc.isPromo) badges += '<span class="promo-badge">PROMO</span>';
+      if(pc.wasDisc) { const p2 = getProfileDisc(); badges += '<span class="disc-badge">−'+p2.disc+'%</span>'; }
+      const card = document.createElement('div');
+      card.className = 'product-card';
+      card.innerHTML = `
+        <div class="product-info">
+          <div class="product-name">${escH(p.name)}</div>
+          <div class="product-meta">${p.sku ? '<span>'+escH(p.sku)+'</span>' : ''} ${badges}</div>
+        </div>
+        <div class="price-col">${priceHTML}</div>
+        <button class="add-btn" onclick="addToCart(${p.id},${JSON.stringify(escH(p.name))},${JSON.stringify(p.sku||'')},${pc.final},${pc.isPromo?1:0},${pc.wasDisc?1:0},${pc.original||pc.final})">+</button>
+      `;
+      el.appendChild(card);
+    });
+  } catch(e) {
+    el.innerHTML = '<div class="empty" style="color:#e74c3c">Errore: '+escH(e.message)+'</div>';
+  }
+}
+
+function addToCart(id, name, sku, price, isPromo, wasDisc, originalPrice) {
+  const ex = cart.find(i => i.id === id);
+  if(ex) { ex.qty++; }
+  else { cart.push({ id, name, sku, price, isPromo:!!isPromo, wasDisc:!!wasDisc, originalPrice, qty:1 }); }
+  saveCart(); updateBadge();
+  // feedback visivo
+  const btns = document.querySelectorAll('.add-btn');
+  // flash tab
+  const t = document.getElementById('cart-tab');
+  t.style.color = '#27ae60';
+  setTimeout(() => t.style.color = '', 400);
+}
+
+function renderCart() {
+  const listEl = document.getElementById('cart-list');
+  const emptyEl = document.getElementById('cart-empty');
+  const footerEl = document.getElementById('cart-footer');
+  listEl.innerHTML = '';
+  if(!cart.length) { emptyEl.style.display='block'; footerEl.style.display='none'; return; }
+  emptyEl.style.display = 'none'; footerEl.style.display = 'block';
+  let subtotal = 0;
+  cart.forEach((item, idx) => {
+    const line = item.price * item.qty; subtotal += line;
+    const d = document.createElement('div'); d.className = 'cart-item';
+    let discNote = '';
+    if(item.isPromo) discNote = '<div class="cart-item-disc">⚡ Prezzo promo mantenuto (era '+fmt(item.originalPrice)+')</div>';
+    else if(item.wasDisc) discNote = '<div class="cart-item-disc">✓ Sconto profilo applicato (era '+fmt(item.originalPrice)+')</div>';
+    d.innerHTML = `
+      <div class="cart-item-top">
+        <div style="flex:1;min-width:0">
+          <div class="cart-item-name">${escH(item.name)}</div>
+          <div class="cart-item-sku">${item.sku ? 'SKU: '+escH(item.sku) : ''}</div>
+          ${discNote}
+        </div>
+        <button class="del-btn" onclick="removeItem(${idx})">×</button>
+      </div>
+      <div class="cart-controls">
+        <button class="qty-btn" onclick="changeQty(${idx},-1)">−</button>
+        <span class="qty-val">${item.qty}</span>
+        <button class="qty-btn" onclick="changeQty(${idx},1)">+</button>
+        <span class="unit-price">${fmt(item.price)} cad.</span>
+        <span class="line-total">${fmt(line)}</span>
+      </div>`;
+    listEl.appendChild(d);
+  });
+  const extraDisc = Math.min(99, Math.max(0, parseFloat(document.getElementById('extra-disc').value)||0));
+  const extraAmt = subtotal * extraDisc / 100;
+  const total = subtotal - extraAmt;
+  let rows = '<div class="sum-row"><span>Subtotale</span><span>'+fmt(subtotal)+'</span></div>';
+  if(extraDisc > 0) rows += '<div class="sum-row"><span>Sconto extra '+extraDisc+'%</span><span>− '+fmt(extraAmt)+'</span></div>';
+  rows += '<div class="sum-row total"><span>Totale</span><span>'+fmt(total)+'</span></div>';
+  document.getElementById('summary').innerHTML = rows;
+}
+
+function changeQty(idx, d) { cart[idx].qty = Math.max(1, cart[idx].qty+d); saveCart(); renderCart(); }
+function removeItem(idx) { cart.splice(idx,1); saveCart(); renderCart(); updateBadge(); }
+function clearCart() { if(!confirm('Svuotare il carrello?')) return; cart=[]; saveCart(); renderCart(); updateBadge(); }
+function saveCart() { localStorage.setItem('sidea_cart', JSON.stringify(cart)); }
+
+function saveQuote() {
+  if(!cart.length) { alert('Carrello vuoto'); return; }
+  const client = document.getElementById('client-name').value.trim() || 'Cliente';
+  const ref = document.getElementById('client-ref').value.trim();
+  const note = document.getElementById('order-note').value.trim();
+  const extraDisc = parseFloat(document.getElementById('extra-disc').value)||0;
+  const subtotal = cart.reduce((s,i) => s+i.price*i.qty, 0);
+  const total = subtotal * (1 - extraDisc/100);
+  const q = { id:Date.now(), date:new Date().toISOString(), client, ref, note, extraDisc, profile:currentProfile, items:[...cart], subtotal, total };
+  quotes.unshift(q);
+  if(quotes.length > 100) quotes = quotes.slice(0,100);
+  localStorage.setItem('sidea_quotes', JSON.stringify(quotes));
+  alert('✓ Preventivo salvato!');
+}
+
+function renderHistory() {
+  const el = document.getElementById('hist-list');
+  const emEl = document.getElementById('hist-empty');
+  el.innerHTML = '';
+  if(!quotes.length) { emEl.style.display='block'; return; }
+  emEl.style.display = 'none';
+  quotes.forEach((q, idx) => {
+    const d = new Date(q.date);
+    const dateStr = d.toLocaleDateString('it-IT') + ' ' + d.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
+    const nItems = q.items.length + ' prodott' + (q.items.length===1?'o':'i');
+    const profLabel = PROFILES[q.profile]?.label || q.profile;
+    const card = document.createElement('div'); card.className = 'hist-card';
+    card.innerHTML = `
+      <div class="hist-top">
+        <div>
+          <div class="hist-client">${escH(q.client)}${q.ref ? ' · '+escH(q.ref) : ''}</div>
+          <div class="hist-meta">${dateStr}<br>${nItems} · ${escH(profLabel)}</div>
+        </div>
+        <div class="hist-total">${fmt(q.total)}</div>
+      </div>
+      <div class="hist-actions">
+        <button onclick="loadQuote(${idx})">↩ Ricarica</button>
+        <button onclick="exportQuote(${idx})">📤 Esporta</button>
+        <button class="danger" onclick="deleteQuote(${idx})">🗑 Elimina</button>
+      </div>`;
+    el.appendChild(card);
+  });
+}
+
+function loadQuote(idx) {
+  if(!confirm('Sovrascrivere il carrello attuale?')) return;
+  const q = quotes[idx];
+  cart = [...q.items]; saveCart(); updateBadge();
+  document.getElementById('client-name').value = q.client || '';
+  document.getElementById('client-ref').value = q.ref || '';
+  document.getElementById('order-note').value = q.note || '';
+  document.getElementById('extra-disc').value = q.extraDisc || 0;
+  if(q.profile && PROFILES[q.profile]) {
+    currentProfile = q.profile;
+    document.getElementById('profile-select').value = q.profile;
+    onProfileChange();
+  }
+  switchTab('cart');
+}
+
+function deleteQuote(idx) {
+  if(!confirm('Eliminare questo preventivo?')) return;
+  quotes.splice(idx,1);
+  localStorage.setItem('sidea_quotes', JSON.stringify(quotes));
+  renderHistory();
+}
+
+function buildOrderText(q) {
+  const d = new Date(q.date);
+  const dateStr = d.toLocaleDateString('it-IT') + ' ' + d.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
+  const profLabel = PROFILES[q.profile]?.label || q.profile;
+  let lines = [
+    'PREVENTIVO SIDEA',
+    'Data: ' + dateStr,
+    'Cliente: ' + q.client + (q.ref ? ' ('+q.ref+')' : ''),
+    'Profilo: ' + profLabel,
+    '─────────────────────────────────',
+  ];
+  q.items.forEach(i => {
+    let row = i.name;
+    if(i.sku) row += ' ['+i.sku+']';
+    if(i.isPromo) row += ' ⚡PROMO';
+    else if(i.wasDisc) row += ' (era '+fmt(i.originalPrice)+')';
+    lines.push(row);
+    lines.push('  '+i.qty+' × '+fmt(i.price)+' = '+fmt(i.price*i.qty));
+  });
+  lines.push('─────────────────────────────────');
+  if(q.extraDisc > 0) {
+    lines.push('Subtotale: '+fmt(q.subtotal));
+    lines.push('Sconto extra '+q.extraDisc+'%: − '+fmt(q.subtotal*q.extraDisc/100));
+  }
+  lines.push('TOTALE: '+fmt(q.total));
+  if(q.note) { lines.push(''); lines.push('Note: '+q.note); }
+  return lines.join('\n');
+}
+
+function exportQuote(idx) { shareText(buildOrderText(quotes[idx])); }
+
+function exportOrder() {
+  if(!cart.length) { alert('Carrello vuoto'); return; }
+  const client = document.getElementById('client-name').value.trim() || 'Cliente';
+  const ref = document.getElementById('client-ref').value.trim();
+  const note = document.getElementById('order-note').value.trim();
+  const extraDisc = parseFloat(document.getElementById('extra-disc').value)||0;
+  const subtotal = cart.reduce((s,i) => s+i.price*i.qty, 0);
+  const total = subtotal*(1-extraDisc/100);
+  shareText(buildOrderText({ date:new Date().toISOString(), client, ref, note, extraDisc, profile:currentProfile, items:cart, subtotal, total }));
+}
+
+function shareText(text) {
+  if(navigator.share) {
+    navigator.share({ title:'Preventivo Sidea', text });
+  } else {
+    const el = document.createElement('textarea');
+    el.value = text; document.body.appendChild(el); el.select();
+    document.execCommand('copy'); document.body.removeChild(el);
+    alert('📋 Copiato negli appunti!\n\n' + text);
+  }
+}
+
+function updateBadge() {
+  const tab = document.getElementById('cart-tab');
+  const n = cart.reduce((s,i) => s+i.qty, 0);
+  const old = tab.querySelector('.badge'); if(old) old.remove();
+  if(n > 0) { const b = document.createElement('span'); b.className='badge'; b.textContent=n; tab.appendChild(b); }
+}
+
+function fmt(n) { return '€ ' + Number(n).toLocaleString('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function escH(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+init();
+</script>
+</body>
+</html>
